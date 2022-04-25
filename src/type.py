@@ -4,10 +4,16 @@ from enum import Enum, auto
 
 
 @dataclass
-class Project:
-    project_id: int
-    project_name: str
-    start_date: datetime.datetime
+class Folder:
+    id_: str
+    name: str
+
+    @classmethod
+    def from_dict(cls, d):
+        if d["mimeType"] != "application/vnd.google-apps.folder":
+            return None
+        return cls(d["id"], d["name"])
+
 
 
 class ImageType(Enum):

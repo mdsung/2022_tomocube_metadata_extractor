@@ -14,6 +14,8 @@ google-auth-oauthlib = "^0.5.1"
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
 isort = "^5.10.1"
+notebook = "^6.4.11"
+ipykernel = "^6.13.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
