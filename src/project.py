@@ -1,13 +1,11 @@
 from dataclasses import dataclass
 
-from google.oauth2.credentials import Credentials
-
-from src.gdrive import GDriveReader
+from src.gdrive import Credentials, GDriveReader
 
 
 @dataclass
 class Project:
-    google_drive_folder_id: int
+    google_drive_folder_id: str
     name: str
 
     @classmethod
