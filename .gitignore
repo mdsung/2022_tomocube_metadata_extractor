@@ -4,3 +4,4 @@ credentials.json
 data/
 .env
 .venv
+*.log
