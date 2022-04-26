@@ -108,7 +108,8 @@ class GDriveReader:
 
                 for file in response.get("files", []):
                     one_file_dict = {
-                        key: file[key] for key in ["id", "name", "mimeType"]
+                        key: file[key]
+                        for key in ["id", "name", "parents", "mimeType"]
                     }
                     file_list.append(one_file_dict)
 
