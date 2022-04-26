@@ -50,10 +50,15 @@ class Database:
         with open(sql_file, "r") as f:
             sql = f.read()
 
-        if project_name is not None:
-            sql = sql.replace("project_name", project_name)
+        sql_commands = sql.split(";")
 
-        self.execute_sql(sql)
+        for command in sql_commands:
+            if command.strip() == "":
+                continue
+            if project_name is not None:
+                command = command.replace("table_name", project_name)
+            self.execute_sql(command)
+
         self.conn.commit()
 
 
