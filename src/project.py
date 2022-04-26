@@ -34,19 +34,22 @@ def is_project_in_database(database):
 
 
 def create_project_table(database):
-    database.execute_sql_file("sql/create_project_list_table.sql")
+    database.execute_sql_file("sql/create_project_table.sql")
 
 
-def create_project_database(credentials, database, folder_raw_data_id):
+def insert_projects(credentials, database, folder_raw_data_id):
     tomocube_projects = get_projects(credentials, folder_raw_data_id)
 
     if not is_project_in_database(database):
         create_project_table(database)
 
-    projects = []
     for project in tomocube_projects:
         project.insert_to_database(database)
-        projects.append(project)
+
     database.conn.commit()
 
-    return projects
+    return tomocube_projects
+
+
+def get_target_project(target_filename: str) -> list[str]:
+    return open(target_filename).read().splitlines()
