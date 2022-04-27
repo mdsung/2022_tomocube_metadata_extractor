@@ -1,4 +1,3 @@
-import concurrent.futures
 import os
 from pathlib import Path
 
@@ -25,9 +24,8 @@ def main():
         if project.name in target_project_names:
             create_project_tables(database, project)
 
-    target_project = projects[3]
-
-    print(read_all_images_in_the_project(credentials, target_project))
+    for project in projects:
+        read_all_images_in_the_project(credentials, project)
 
     database.conn.close()
 
