@@ -20,7 +20,13 @@ CREATE TABLE IF NOT EXISTS table_name_image (
     `google_drive_file_id` varchar(255) NOT NULL,
     `create_date` datetime NOT NULL,
     `image_type` varchar(20) NOT NULL,
-    `quality` int,
+    `patient_id` int(10) NOT NULL,
     `cell_id` int(10) NOT NULL,
+    FOREIGN KEY(`patient_id`) REFERENCES table_name_patient(`patient_id`) ON UPDATE CASCADE,
     FOREIGN KEY (`cell_id`) REFERENCES table_name_cell(`cell_id`) ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS table_name_image_quality (
+    `image_id` int(10) PRIMARY KEY,
+    `quality` int
 );

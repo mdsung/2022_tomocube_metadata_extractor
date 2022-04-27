@@ -1,0 +1,4 @@
+{
+    "2022_tomocube_sepsis":["sepsis_diagnosis", "after_shock", "discharge"],
+    "2022_tomocube_igra":["healthy", "immune_compromised"]
+}
