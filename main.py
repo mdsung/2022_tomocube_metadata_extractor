@@ -4,7 +4,7 @@ from pathlib import Path
 
 from src.database import Database
 from src.gdrive import GDriveCredential
-from src.image import create_image_table
+from src.image import read_all_images_in_the_project
 from src.project import Project, get_target_project, insert_projects
 
 PROJECT_PATH = Path(__file__).parents[1]
@@ -24,6 +24,10 @@ def main():
     for project in projects:
         if project.name in target_project_names:
             create_project_tables(database, project)
+
+    target_project = projects[3]
+
+    print(read_all_images_in_the_project(credentials, target_project))
 
     database.conn.close()
 
