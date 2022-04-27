@@ -23,9 +23,7 @@ def main():
     for project in projects:
         if project.name in target_project_names:
             create_project_tables(database, project)
-
-    for project in projects:
-        read_all_images_in_the_project(credentials, project)
+            read_all_images_in_the_project(credentials, project)
 
     database.conn.close()
 
