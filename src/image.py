@@ -62,8 +62,11 @@ class Image:
         patient_id = find_patient_id(project, self.patient)
 
         sql = f"INSERT INTO {project.name}_image(file_name, google_drive_file_id, create_date, image_type, patient_id, cell_id) SELECT '{self.file_name}', '{self.google_drive_id}', '{self.shoot_datetime}', '{self.image_type.name}', {patient_id}, cell_id FROM {project.name}_cell WHERE cell_type = '{self.cell.cell_type.name}' AND cell_number = {self.cell.cell_number} AND patient_id = {patient_id} AND NOT EXISTS(SELECT * FROM {project.name}_image WHERE file_name = '{self.file_name}')"
-
-        database.execute_sql(sql)
+        try:
+            database.execute_sql(sql)
+        except AttributeError:
+            print(sql)
+            raise AttributeError
 
 
 def find_project_id(project: Project) -> int:
@@ -124,7 +127,7 @@ def read_all_images_in_the_project(credentials: Credentials, project: Project):
     for date_folder in reader.read():
         image_reader = GDriveReader(credentials, date_folder["id"], image=True)
         for image in image_reader.read():
-            if image['id'] in google_file_id_list:
+            if image["id"] in google_file_id_list:
                 continue
             objects = _extract_objects(image, project)
             for obj in objects:
