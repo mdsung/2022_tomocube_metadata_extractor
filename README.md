@@ -1,7 +1,8 @@
 # Create and upload metadata to database based on google drive file system
 
 - Author: MinDong Sung
-- Date: 2022-04-28
+- Create Date: 2022-04-28
+- Updated Date: 2022-05-03
 
 ---
 
@@ -17,3 +18,7 @@
 - project_cell - the cell table
 - project_image - the image table
 - project_image_quality - the image quality labelled table - fill with dashboard
+
+## Related repository
+
+- https://github.com/mdsung/2022_tomocube_image_quality_labeller
