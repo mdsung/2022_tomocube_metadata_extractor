@@ -1,0 +1,5 @@
+version: "3.8"  # optional since v1.27.0
+services:
+  tomocube_database_creator:
+    build: .
+    container_name: "create_tomocube_database"
