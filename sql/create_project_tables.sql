@@ -30,3 +30,10 @@ CREATE TABLE IF NOT EXISTS table_name_image_quality (
     `image_id` int(10) PRIMARY KEY,
     `quality` int
 );
+
+CREATE TABLE IF NOT EXISTS table_name_image_center (
+    `image_id` int(10) PRIMARY KEY,
+    `x` int(5) NOT NULL,
+    `y` int(5) NOT NULL,
+    `z` int(5) NOT NULL
+);
