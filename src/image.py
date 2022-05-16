@@ -20,6 +20,7 @@ class CellType(Enum):
     CD8 = auto()
     monocyte = auto()
     PBMC = auto()
+    RBC = auto()
 
 
 @dataclass
@@ -102,6 +103,14 @@ def parse_image_type(filename: str) -> ImageType:
 
 def parse_cell_type(file_name: str) -> CellType:
     cell_type_str = file_name[20:].split("-")[0]
+
+    if cell_type_str.lower() == "default":
+        return CellType.WBC
+    elif cell_type_str.lower() == "buffycoat":
+        return CellType.WBC
+    elif cell_type_str.lower() == "buffycoatlysis":
+        return CellType.WBC
+
     for cell_type in CellType:
         if cell_type.name.lower() in cell_type_str.lower():
             return cell_type
