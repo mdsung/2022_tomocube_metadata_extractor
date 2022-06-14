@@ -21,9 +21,10 @@ def main():
     target_project_names = get_target_project("src/target_project.txt")
 
     for project in projects:
-        if project.name in target_project_names:
-            create_project_tables(database, project)
-            read_all_images_in_the_project(credentials, project)
+        if project.name not in target_project_names:
+            continue
+        create_project_tables(database, project)
+        read_all_images_in_the_project(credentials, project)
 
     database.conn.close()
 

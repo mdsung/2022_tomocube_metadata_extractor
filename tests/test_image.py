@@ -1,5 +1,17 @@
 import pytest
-from src.image import parse_cell_number, parse_cell_type
+from src.image import (
+    CELL_TYPE_DICT,
+    CellType,
+    parse_cell_number,
+    parse_cell_type,
+)
+
+
+def test_cell_type_dict():
+    assert CELL_TYPE_DICT["CD4"] == CellType.CD4
+    assert CELL_TYPE_DICT["CD8"] == CellType.CD8
+    assert CELL_TYPE_DICT["cd4"] == CellType.CD4
+    assert CELL_TYPE_DICT["cd8"] == CellType.CD8
 
 
 @pytest.mark.parametrize(
@@ -12,7 +24,8 @@ from src.image import parse_cell_number, parse_cell_type
     ],
 )
 def test_parse_cell_type(filename, expected):
-    assert parse_cell_type(filename) == expected
+    print(parse_cell_type(filename))
+    assert parse_cell_type(filename).name == expected
 
 
 @pytest.mark.parametrize(
