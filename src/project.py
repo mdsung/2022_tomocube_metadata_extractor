@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import logging
 from dataclasses import dataclass
 
 from src.database import Database
@@ -10,11 +13,18 @@ class Project:
     name: str
 
     @classmethod
-    def from_metadata(cls, d):
+    def from_metadata(cls, d: dict[str, str]) -> Project:
         return cls(d["id"], d["name"])
 
     def insert_to_database(self, database: Database):
-        sql = f"INSERT INTO project(name, google_drive_folder_id) SELECT '{self.name}', '{self.google_drive_folder_id}' FROM DUAL WHERE NOT EXISTS(SELECT * FROM project WHERE name = '{self.name}')"
+        logger = logging.getLogger()
+        logger.info(f'Inserting project "{self.name}" to database')
+
+        sql = f"""INSERT INTO project(name, google_drive_folder_id) 
+        SELECT '{self.name}', '{self.google_drive_folder_id}' 
+        FROM DUAL WHERE NOT EXISTS(
+            SELECT * FROM project WHERE name = '{self.name}'
+            )"""
         database.execute_sql(sql)
 
 
