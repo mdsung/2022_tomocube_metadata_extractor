@@ -102,6 +102,8 @@ class GDriveReader:
                         pageSize=100,
                         fields="*",
                         pageToken=page_token,
+                        includeItemsFromAllDrives=True,
+                        supportsAllDrives=True,
                     )
                     .execute()
                 )
