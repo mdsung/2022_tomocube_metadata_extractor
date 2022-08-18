@@ -9,6 +9,9 @@ from src.database import Database
 
 # from src.gdrive import Credentials, GDriveReader
 from src.s3 import S3Credential, get_s3_resource
+from src.util import get_project_name_from_bucket_name
+
+logger = logging.getLogger()
 
 
 @dataclass
@@ -52,17 +55,18 @@ class S3WorkingProjects(Projects):
     def get(self, credentials: S3Credential):
         resource = get_s3_resource(credentials)
         return {
-            bucket.name.replace("-", "_")
+            get_project_name_from_bucket_name(bucket.name)
             for bucket in resource.buckets.all()
-            if "tomocube" in bucket.name.replace("-", "_")
+            if "tomocube" in get_project_name_from_bucket_name(bucket.name)
         }
 
 
 class ExistingProjects(Projects):
     def get(self, database) -> set[str]:
+        sql = "SELECT name FROM project"
         return {
             d["name"]  # type:ignore
-            for d in database.execute_sql("SELECT name FROM project")
+            for d in database.execute_sql(sql)
         }
 
 
@@ -78,13 +82,24 @@ class FinalProjects(Projects):
         return working_projects.intersection(target_projects)
 
 
-def create_project_table(database):
+def create_project_table(database: Database):
     database.execute_sql_file("sql/create_project_table.sql")
+
+
+def create_project_tables(database: Database, project_name: str):
+    logger.info(f"Create Project Tables {project_name}")
+    database.execute_sql_file("sql/create_project_tables.sql", project_name)
 
 
 def create_new_project(projects: set[str]) -> None:
     database = Database()
+
+    # project table이 없는 경우 새로 만든다.
+    if not database.is_table("project"):
+        create_project_table(database)
+
+    # project 항목이 없는 경우에는 project table에 insertion 후 관련 project table들을 만든다.
     for project_name in projects:
-        create_project_table(project_name)
         Project(project_name).insert_to_database(database)
+        create_project_tables(database, project_name)
     database.conn.commit()

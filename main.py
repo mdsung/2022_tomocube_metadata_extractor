@@ -5,8 +5,13 @@ from pathlib import Path
 
 from src.database import Database
 from src.gdrive import Credentials, GDriveCredential
-from src.image import read_all_images_in_the_project
+from src.image import (
+    count_existing_images,
+    count_working_images,
+    read_all_images_in_the_project,
+)
 from src.logger import set_logger
+from src.patient import ExistingPatients, NewPatients, WorkingPatients
 from src.project import (
     ExistingProjects,
     FinalProjects,
@@ -20,27 +25,41 @@ from src.s3 import AWS_KEY, AWS_PASSWORD, S3Credential
 PROJECT_PATH = Path(__file__).parents[1]
 FOLDER_RAW_DATA_ID = os.getenv("RAW_DATA_FOLDER_ID")
 logger = set_logger()
+# logger.info("Get credentials")
+gdrive_credentials = GDriveCredential().credentials
+s3_credential = S3Credential(AWS_KEY, AWS_PASSWORD)
 
 
-def create_project_tables(database: Database, project: Project):
-    logger.info(f"Create Project Tables {project.name}")
+def run_each_project(project_name: str):
+    logger.info(f"Start processing {project_name}")
+    count = 0
 
-    database.execute_sql_file("sql/create_project_tables.sql", project.name)
+    existing_patients = ExistingPatients(project_name).get()
+    working_patients = WorkingPatients(project_name, s3_credential).get()
+    new_patients = NewPatients(project_name).get(
+        working_patients, existing_patients
+    )
+
+    # 1. 기존의 환자들 폴더에 있는 이미지 숫자랑 database metadata 숫자랑 같은지 확인
+    for patient in existing_patients:
+        if count_working_images(
+            project_name, patient, s3_credential
+        ) != count_existing_images(project_name, patient):
+            new_patients.add(patient)
+
+    # 2. 새로운 환자에 대해서 image metadata extract
+    for patient in new_patients:
+        count += run_each_patient(project_name, patient)
+
+    return count
 
 
-def run_each_project(credentials: Credentials, project: Project):
-    logger.info(f"Start processing {project.name}")
-
-    database = Database()
-    create_project_tables(database, project)
-    count = read_all_images_in_the_project(credentials, project)
+def run_each_patient(project_name: str, folder_name: str):
+    count = 0
     return count
 
 
 def main():
-    logger.info("Get credentials")
-    gdrive_credentials = GDriveCredential().credentials
-    s3_credential = S3Credential(AWS_KEY, AWS_PASSWORD)
 
     logger.info("Insert Projects")
 
@@ -54,14 +73,14 @@ def main():
     if len(diff_projects) > 0:
         create_new_project(diff_projects)
 
-    # logger.info("Start processing")
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    #     futures = [
-    #         executor.submit(run_each_project, gdrive_credentials, project)
-    #         for project in final_projects
-    #     ]
-    #     for future in concurrent.futures.as_completed(futures):
-    #         logger.info(future.result())
+    logger.info("Start processing")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [
+            executor.submit(run_each_project, project_name)
+            for project_name in final_projects
+        ]
+        for future in concurrent.futures.as_completed(futures):
+            logger.info(future.result())
 
     # logger.info("Finish")
     # projects = insert_projects(credentials, database, FOLDER_RAW_DATA_ID)

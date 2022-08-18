@@ -1,6 +1,7 @@
 import concurrent.futures
 import datetime
 import logging
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from src.cell import Cell
@@ -16,7 +17,28 @@ from src.parser import (
 )
 from src.patient import Patient
 from src.project import Project
+from src.s3 import S3Credential, S3FileReader, get_s3_bucket
 from src.type import CELL_TYPE_DICT, IMAGE_TYPE_DICT, CellType, ImageType
+from src.util import get_bucket_name_from_project_name
+
+
+def count_working_images(
+    project_name: str, patient: str, credential: S3Credential
+):
+    bucket_name = get_bucket_name_from_project_name(project_name)
+    bucket = get_s3_bucket(credential, bucket_name)
+    s3_file_reader = S3FileReader(bucket)
+    return len(s3_file_reader.read(patient))
+
+
+def count_existing_images(project_name: str, patient: str):
+    database = Database()
+    sql = f"""SELECT COUNT(*) count FROM {project_name}_image i
+            LEFT JOIN {project_name}_patient p
+            ON p.patient_id = i.patient_id
+            WHERE google_drive_parent_name = '{patient}';
+            """
+    return database.execute_sql(sql)[0]["count"]  # type: ignore
 
 
 @dataclass
@@ -49,6 +71,26 @@ class Image:
             print(self)
             raise AttributeError from e
         database.conn.close()
+
+
+class Images(ABC):
+    def __init__(self, project_name: str) -> None:
+        self.project_name = project_name
+
+    @abstractmethod
+    def get(self):
+        ...
+
+
+class ExistingImages(Images):
+    def get(self):
+        database = Database()
+        return [
+            data_dict.get("file_name")
+            for data_dict in database.execute_sql(
+                f"SELECT file_name FROM {self.project_name}_image"
+            )
+        ]
 
 
 def read_all_images_in_the_project(credentials: Credentials, project: Project):
