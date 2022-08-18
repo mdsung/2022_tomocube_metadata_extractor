@@ -2,14 +2,14 @@
 
 - Author: MinDong Sung
 - Create Date: 2022-04-28
-- Updated Date: 2022-05-24
+- Updated Date: 2022-08-18
 
 ---
 
 ## Objective
 
 - The data files are stored in the google driver.
-- Using google drive api, create metadata database.
+- Using google drive api/AWS s3 sdk, create metadata database.
 
 ## Database structure
 
@@ -27,6 +27,10 @@
     - `token.json` : google drive api credentials for authentication
     - `credentials.json` : google api token
 
+### AWS key and password
+
+    - Need AWS key and password to access AWS s3 with `boto3` SDK
+
 ### Other parameters
 
     - `.env`: Other environment variables
@@ -42,6 +46,9 @@
     MYSQL_USER=         # mysql username
     MYSQL_PASSWORD=     # mysql password
     MYSQL_CHARSET=utf8
+
+    AWS_KEY=            # AWS s3 key
+    AWS_PASSWORD=       # AWS s3 password
 
     ```
 

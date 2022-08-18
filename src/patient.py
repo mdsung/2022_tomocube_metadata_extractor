@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from src.database import Database
 from src.project import Project
@@ -9,7 +10,7 @@ from src.type import CellType
 class Patient:
     google_parent_id: str
     project: Project
-    google_drive_parent_name: str
+    google_drive_parent_name: Optional[str]
 
     def insert_to_database(
         self, project: Project, project_id: int, patient_id: int
