@@ -5,6 +5,8 @@ from dataclasses import dataclass
 import boto3
 from dotenv import load_dotenv
 
+from src.util import get_bucket_name_from_project_name
+
 load_dotenv()
 AWS_KEY = os.getenv("AWS_KEY")
 AWS_PASSWORD = os.getenv("AWS_PASSWORD")
@@ -28,8 +30,19 @@ def get_s3_resource(credential: S3Credential):
     )
 
 
-def get_s3_bucket(credential: S3Credential, bucket_name: str):
-    return get_s3_resource(credential).Bucket(bucket_name)
+def get_s3_bucket(credential: S3Credential, name: str):
+    """Get S3 bucket object from name
+
+    Args:
+        credential (S3Credential): _description_
+        name (str): Either bucket name or project name input
+
+    Returns:
+        S3 object: S3 bucket object
+    """
+    if "_" in name:
+        name = get_bucket_name_from_project_name(name)
+    return get_s3_resource(credential).Bucket(name)
 
 
 class S3Reader(ABC):
@@ -65,10 +78,6 @@ def main():
     credential = S3Credential(AWS_KEY, AWS_PASSWORD)
     resource = get_s3_resource(credential)
     bucket_list = [bucket.name for bucket in resource.buckets.all()]
-    # bucket = get_s3_bucket(credential, project_name.replace("_", "-"))
-    # folder_reader = S3FolderReader(bucket)
-    # folder_list = folder_reader.read()
-    # print(folder_list)
 
 
 if __name__ == "__main__":

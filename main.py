@@ -1,31 +1,39 @@
 import concurrent.futures
-import logging
 import os
 from pathlib import Path
 
 from src.database import Database
-from src.gdrive import Credentials, GDriveCredential
+from src.gdrive import GDriveCredential
 from src.image import (
+    ExistingImages,
     count_existing_images,
     count_working_images,
-    read_all_images_in_the_project,
+    extract_objects,
+    write_to_database,
 )
 from src.logger import set_logger
-from src.patient import ExistingPatients, NewPatients, WorkingPatients
+from src.parser import find_patient_id, find_project_id
+from src.patient import ExistingPatients, NewPatients, Patient, WorkingPatients
 from src.project import (
     ExistingProjects,
     FinalProjects,
-    Project,
     S3WorkingProjects,
     TargetProjects,
     create_new_project,
 )
-from src.s3 import AWS_KEY, AWS_PASSWORD, S3Credential
+from src.s3 import (
+    AWS_KEY,
+    AWS_PASSWORD,
+    S3Credential,
+    S3FileReader,
+    get_s3_bucket,
+)
 
 PROJECT_PATH = Path(__file__).parents[1]
 FOLDER_RAW_DATA_ID = os.getenv("RAW_DATA_FOLDER_ID")
 logger = set_logger()
-# logger.info("Get credentials")
+
+logger.info("Get credentials")
 gdrive_credentials = GDriveCredential().credentials
 s3_credential = S3Credential(AWS_KEY, AWS_PASSWORD)
 
@@ -48,15 +56,35 @@ def run_each_project(project_name: str):
             new_patients.add(patient)
 
     # 2. 새로운 환자에 대해서 image metadata extract
+    s3_file_reader = S3FileReader(get_s3_bucket(s3_credential, project_name))
+    project_id = find_project_id(project_name)
+
     for patient in new_patients:
-        count += run_each_patient(project_name, patient)
+        patient_object = Patient(project_name, patient)
+        patient_object.insert_to_database(project_id)
+
+        patient_id = find_patient_id(project_name, patient)
+        count += run_each_patient(
+            s3_file_reader, project_name, patient_id, patient
+        )
 
     return count
 
 
-def run_each_patient(project_name: str, folder_name: str):
-    count = 0
-    return count
+def run_each_patient(
+    s3_file_reader: S3FileReader,
+    project_name: str,
+    patient_id: int,
+    folder_name: str,
+):
+    working_images = set(s3_file_reader.read(folder_name))
+    existing_images = set(ExistingImages(project_name).get())
+    target_images = working_images - existing_images
+    for image in target_images:
+        objects = extract_objects(image, project_name, folder_name)
+        write_to_database(objects, project_name, patient_id)
+    Database().conn.commit()
+    return len(target_images)
 
 
 def main():
@@ -74,7 +102,7 @@ def main():
         create_new_project(diff_projects)
 
     logger.info("Start processing")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         futures = [
             executor.submit(run_each_project, project_name)
             for project_name in final_projects
@@ -82,24 +110,8 @@ def main():
         for future in concurrent.futures.as_completed(futures):
             logger.info(future.result())
 
-    # logger.info("Finish")
-    # projects = insert_projects(credentials, database, FOLDER_RAW_DATA_ID)
-
-    # logger.info(f"Target projects: {', '.join(target_project_names)}")
-    # logger.info("Start multiprocessing")
-
-    # counts = []
-    # with concurrent.futures.ProcessPoolExecutor() as executor:
-    #     futures = [
-    #         executor.submit(run_each_project, credentials, project)
-    #         for project in projects
-    #         if project.name in target_project_names
-    #     ]
-    #     for future in concurrent.futures.as_completed(futures):
-    #         counts.append(future.result())
-
-    # logger.info(f"{sum(counts)} images have been uploaded")
-    # database.conn.close()
+    database.conn.commit()
+    database.conn.close()
 
 
 if __name__ == "__main__":

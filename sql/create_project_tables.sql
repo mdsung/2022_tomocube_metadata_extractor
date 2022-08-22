@@ -1,8 +1,9 @@
 CREATE TABLE IF NOT EXISTS table_name_patient (
     `patient_id` int(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `google_drive_parent_id` varchar(255) NOT NULL,
+    `google_drive_parent_id` varchar(255),
     `group` varchar(255),
     `project_id` int(11) NOT NULL,
+    `google_drive_parent_name` varchar(30) NOT NULL,
     FOREIGN KEY (`project_id`) REFERENCES project(`project_id`) ON UPDATE CASCADE
 );
 
@@ -17,7 +18,7 @@ CREATE TABLE IF NOT EXISTS table_name_cell (
 CREATE TABLE IF NOT EXISTS table_name_image (
     `image_id` int(10) NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `file_name` varchar(255) NOT NULL,
-    `google_drive_file_id` varchar(255) NOT NULL,
+    `google_drive_file_id` varchar(255),
     `create_date` datetime NOT NULL,
     `image_type` varchar(20) NOT NULL,
     `patient_id` int(10) NOT NULL,

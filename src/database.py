@@ -36,6 +36,7 @@ class Database:
             user=user,
             password=password,
             charset=charset,
+            connect_timeout=1000,
         )  # type: ignore
 
     def execute_sql(self, sql: str):

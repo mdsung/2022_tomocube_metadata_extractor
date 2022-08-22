@@ -6,17 +6,19 @@ from src.project import Project
 from src.type import CELL_TYPE_DICT, IMAGE_TYPE_DICT, CellType, ImageType
 
 
-def find_project_id(project: Project) -> int:
+def find_project_id(project_name: str) -> int:
     database = Database()
-    sql = f"SELECT project_id FROM project WHERE name = '{project.name}'"
+    sql = f"SELECT project_id FROM project WHERE name = '{project_name}'"
     result = database.execute_sql(sql)[0]["project_id"]  # type:ignore
     database.conn.close()
     return result
 
 
-def find_patient_id(project: Project, google_parent_id: str) -> int:
+def find_patient_id(project_name: str, folder_name: str) -> int:
     database = Database()
-    sql = f"SELECT patient_id FROM {project.name}_patient WHERE google_drive_parent_id = '{google_parent_id}'"
+    sql = f"""SELECT patient_id 
+            FROM {project_name}_patient 
+            WHERE google_drive_parent_name = '{folder_name}'"""
     result = database.execute_sql(sql)[0]["patient_id"]  # type:ignore
     database.conn.close()
     return result
