@@ -3,7 +3,6 @@ import os
 from pathlib import Path
 
 from src.database import Database
-from src.gdrive import GDriveCredential
 from src.image import (
     ExistingImages,
     count_existing_images,
@@ -29,12 +28,9 @@ from src.s3 import (
     get_s3_bucket,
 )
 
-PROJECT_PATH = Path(__file__).parents[1]
-FOLDER_RAW_DATA_ID = os.getenv("RAW_DATA_FOLDER_ID")
 logger = set_logger()
 
 logger.info("Get credentials")
-gdrive_credentials = GDriveCredential().credentials
 s3_credential = S3Credential(AWS_KEY, AWS_PASSWORD)
 
 
@@ -102,7 +98,7 @@ def main():
         create_new_project(diff_projects)
 
     logger.info("Start processing")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [
             executor.submit(run_each_project, project_name)
             for project_name in final_projects

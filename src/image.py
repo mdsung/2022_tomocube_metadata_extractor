@@ -27,7 +27,7 @@ def count_working_images(
     bucket = get_s3_bucket(credential, bucket_name)
     s3_file_reader = S3FileReader(bucket)
     result = len(s3_file_reader.read(patient))
-    logging.info(f"Counting working images : {result}")
+    logging.info(f"Counting working images-{patient} : {result}")
     return result
 
 
@@ -39,7 +39,7 @@ def count_existing_images(project_name: str, patient: str):
             WHERE google_drive_parent_name = '{patient}';
             """
     result = database.execute_sql(sql)[0]["count"]  # type: ignore
-    logging.info(f"Counting existing images : {result}")
+    logging.info(f"Counting existing images-{patient}: {result}")
     return result
 
 
@@ -107,7 +107,7 @@ def write_to_database(objects, project_name: str, patient_id: int) -> None:
 
     cell_object, image_object = objects
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         f1 = executor.submit(
             cell_object.insert_to_database, project_name, patient_id
         )
