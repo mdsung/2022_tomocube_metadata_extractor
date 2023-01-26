@@ -25,7 +25,8 @@ def find_patient_id(project_name: str, folder_name: str) -> int:
 
 
 def parse_shoot_time(filename: str) -> datetime.datetime:
-    return datetime.datetime.strptime(filename[:14], "%Y%m%d.%H%M%S")
+    time_string = filename[:15]
+    return datetime.datetime.strptime(time_string, "%Y%m%d.%H%M%S")
 
 
 def parse_image_type(

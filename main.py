@@ -77,6 +77,8 @@ def run_each_patient(
     existing_images = set(ExistingImages(project_name).get())
     target_images = working_images - existing_images
     for image in target_images:
+        if "tiff" not in image:
+            continue
         objects = extract_objects(image, project_name, folder_name)
         write_to_database(objects, project_name, patient_id)
     Database().conn.commit()

@@ -45,7 +45,13 @@ class NewPatients(Patients):
     def get(
         self, working_patients: set[str], existing_patients: set[str]
     ) -> set[str]:
-        return working_patients - existing_patients
+        return (
+            working_patients
+            - existing_patients
+            - {
+                "processed",
+            }
+        )
 
 
 @dataclass
